@@ -1,2 +1,2 @@
 # Competitive-Programming-Solutions
-My codes for different competitive programming problems
+My codes for different competitive programming problems using C++
