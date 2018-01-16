@@ -2,7 +2,7 @@
 using namespace std;
 const int INF = 1000000000;
 
-int n, g, wg[1005], pr[1005], mem[1005][35];
+int n, wg[1005], pr[1005], mem[1005][35];
 int dp(int obj, int cap) {
     if (cap < 0) return -INF;
     if (obj == n) return 0;
@@ -12,7 +12,7 @@ int dp(int obj, int cap) {
 }
 
 int main(){
-    int t, x, y;
+    int t, g, x, y;
     scanf("%d", &t);
     while (t--) {
         scanf("%d", &n);
