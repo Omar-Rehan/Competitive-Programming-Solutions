@@ -1,0 +1,47 @@
+#include <bits/stdc++.h>
+using namespace std;
+const int MAX = (1e6);
+
+vector<bool> isPrime(MAX + 1, 1);
+void Sieve() {
+    isPrime[0] = isPrime[1] = 0;
+    for (int i = 2; i*i <= MAX; i++) {
+        if (isPrime[i])
+            for (int j = i*i; j <= MAX; j += i) isPrime[j] = 0;
+    }
+}
+
+int pwr(int b, int p) {
+    if (!p) return 1;
+    int sq = pwr(b, p >> 1);
+    sq *= sq;
+    if (p&1) sq *= b;
+    return sq;
+}
+
+bool isCircularPrime(int n) {
+    int digits = 1 + (int)floor(log10(n));
+    int k = digits;
+    while (k--) {
+        n = (n / 10) + (n % 10) * pwr(10, digits-1);
+        if (!isPrime[n]) return false;
+    }
+    return true;
+}
+
+int cumArr[MAX+1] = {0};
+int main() {
+    int l, r;
+    Sieve();
+    for (int i = 100; i <= MAX; i++)
+        cumArr[i] = isCircularPrime(i) + cumArr[i-1];
+
+    while (scanf("%d", &l) && l != -1) {
+        scanf("%d", &r);
+        int cnt = cumArr[r] - cumArr[l-1];
+
+        if (!cnt) printf("No Circular Primes.\n");
+        else if (cnt == 1) printf("1 Circular Prime.\n");
+        else printf("%d Circular Primes.\n", cnt);
+    }
+}
