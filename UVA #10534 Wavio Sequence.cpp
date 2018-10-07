@@ -3,7 +3,9 @@ using namespace std;
 
 int n;
 vector<int> tmp, nums;
-deque<int> len1, len2;
+deque<int> len1, len2; 
+// len1 -> each element at the end of a longest increasing subsequence
+// len2 -> each element at the beginning of a longest decreasing subsequence
 
 void LIS(bool b) { // O(n.log(n))
     tmp.clear();
@@ -32,7 +34,8 @@ int main() {
         LIS(1);
         reverse(nums.begin(),nums.end());
         LIS(0);
-        for (int mid = 0; mid < n; mid++) ans = max(ans, 2 * min(len1[mid], len2[mid]) - 1);
+        for (int mid = 0; mid < n; mid++) 
+            ans = max(ans, 2 * min(len1[mid], len2[mid]) - 1);
         printf("%d\n", ans);
     }
 }
