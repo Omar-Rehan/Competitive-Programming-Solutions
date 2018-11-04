@@ -1,0 +1,166 @@
+#include <bits/stdc++.h>
+using namespace std;
+const int INF = (1 << 31) - 1;
+
+int points[100005];
+map<int,int> mp; // For coordinate compression
+
+struct DSU {
+    vector<int> num, ranks, parents, maxHeight, minHeight;
+    DSU(int n) {
+        num = vector<int>(n); // stores the number of cites in the disjoint-set
+        ranks = vector<int>(n);
+        parents = vector<int>(n);
+        maxHeight = vector<int>(n); // stores the upper limit of the disjoint-set
+        minHeight = vector<int>(n); // stores the lower limit of the disjoint-set
+        
+        for (int i = 0; i < n; i++) {
+            num[i] = ranks[i] = 1;
+            parents[i] = i;
+            maxHeight[i] = minHeight[i] = mp[points[i]]; // compressed heights
+        }
+    }
+
+    int findSet(int x) {
+        if (x == parents[x]) return x;
+        return parents[x] = findSet(parents[x]);
+    }
+
+    void link(int x, int y) {
+        if (ranks[x] > ranks[y]) swap(x, y);
+        parents[x] = y;
+        num[y] += num[x];
+        num[x] = num[y];
+        maxHeight[y] = maxHeight[x] = max(maxHeight[y], maxHeight[x]);
+        minHeight[y] = minHeight[x] = min(minHeight[y], minHeight[x]);
+        if (ranks[x] == ranks[y]) ranks[y]++;
+    }
+
+    void unionSets(int x, int y) {
+        x = findSet(x), y = findSet(y);
+        link(x, y);
+    }
+
+    bool sameSet(int x, int y) {
+        return findSet(x) == findSet(y);
+    }
+};
+
+const int MAX = (1e5);
+int tree[3*MAX][2];
+pair<int,int> getAcc(int idx) {
+    int sum1 = 0, sum2 = 0;
+
+    // For number of disjoint-sets
+    int i = idx;
+    while (i > 0) {
+        sum1 += tree[i][0];
+        i -= (i & -i);
+    }
+
+    // For number of cities
+    i = idx;
+    while (i > 0) {
+        sum2 += tree[i][1];
+        i -= (i & -i);
+    }
+
+    return make_pair(sum1, sum2);
+}
+
+void add(int idx, int val1, int val2) {
+    // For number of disjoint-sets
+    int i = idx;
+    while (i < MAX) {
+        tree[i][0] += val1;
+        i += (i & -i);
+    }
+
+    // For number of cities
+    i = idx;
+    while (i < MAX) {
+        tree[i][1] += val2;
+        i += (i & -i);
+    }
+}
+
+int main() {
+    int t;
+    scanf("%d", &t);
+    while (t--) {
+        int n;
+        scanf("%d", &n);
+
+        set<int> st;
+        for (int i = 0; i < n; i++) {
+            scanf("%d %d", &points[i], &points[i]);
+            st.insert(points[i]);
+        }
+
+        // Coordinate compression
+        int idx = 1;
+        mp.clear();
+        mp[-1] = 0;
+        for (auto e : st) mp[e] = idx++;
+        mp[INF] = idx;
+
+        DSU dsu(n);
+        memset(tree, 0, sizeof tree);
+
+        int q;
+        scanf("%d", &q);
+        while (q--) {
+            char cc[6];
+            string cmd;
+            scanf("\n%s", &cc);
+            cmd = cc;
+            
+            if (cmd == "road") {
+                int x, y;
+                scanf("%d %d", &x, &y);
+                if (!dsu.sameSet(x, y)) {
+                    x = dsu.findSet(x);
+                    y = dsu.findSet(y);
+
+                    // erase the disjoint-set (x)
+                    int mn = dsu.minHeight[x];
+                    int mx = dsu.maxHeight[x];
+                    int num = dsu.num[x];
+                    if (mx > mn) {
+                        add(mn, -1, -num);
+                        add(mx, 1, num);
+                    }
+
+                    // erase the disjoint-set (y)
+                    mn = dsu.minHeight[y];
+                    mx = dsu.maxHeight[y];
+                    num = dsu.num[y];
+                    if (mx > mn) {
+                        add(mn, -1, -num);
+                        add(mx, 1, num);
+                    }
+
+                    // add the combined disjoint-sets
+                    dsu.unionSets(x, y);
+                    mn = dsu.minHeight[y];
+                    mx = dsu.maxHeight[y];
+                    num = dsu.num[y];
+                    if (mx > mn) {
+                        add(mn, 1, num);
+                        add(mx, -1, -num);
+                    }
+                }
+            } else {
+                double d;
+                scanf("%lf", &d);
+                int y = d;
+                
+                auto it = mp.upper_bound(y);
+                it--;
+
+                pair<int,int> q = getAcc((*it).second);
+                printf("%d %d\n", q.first, q.second);
+            }
+        }
+    }
+}
